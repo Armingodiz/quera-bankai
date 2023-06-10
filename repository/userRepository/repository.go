@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type UserRepository interface {
@@ -61,18 +62,18 @@ func getDbConnection() *gorm.DB {
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_NAME"), os.Getenv("DB_PASSWORD"))
 	fmt.Println(dbURI)
 	// Connect to the database
-	db, err := gorm.Open("postgres", dbURI)
+	db, err := gorm.Open(postgres.Open(dbURI))
 	if err != nil {
 		panic(err)
 	}
 
 	// Set up connection pool and other configuration options
-	db.DB().SetMaxIdleConns(10)
-	db.DB().SetMaxOpenConns(100)
-
-	// Enable logging in development mode
-	db.LogMode(true)
-
+	if db, err := db.DB(); err != nil {
+		panic(err)
+	} else {
+		db.SetMaxOpenConns(100)
+		db.SetMaxIdleConns(10)
+	}
 	// Migrate the User model to the database (if necessary)
 	db.AutoMigrate(&models.User{})
 

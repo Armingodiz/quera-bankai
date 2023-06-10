@@ -42,5 +42,5 @@ volumes:
   postgres-db:
 networks:
   default:
-    external:
       name: bankai
+      external: true
